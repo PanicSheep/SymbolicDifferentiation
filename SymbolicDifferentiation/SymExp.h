@@ -5,11 +5,12 @@
 #include <vector>
 
 // Forward declaration
+class SymExpVec;
+class Var;
 namespace AST
 {
 	class Node;
 }
-class Var;
 
 // Wrapper to provide value semantics
 class SymExp
@@ -28,10 +29,11 @@ public:
 	SymExp& operator=(SymExp&&) noexcept = default;
 	~SymExp() = default;
 
-	[[nodiscard]] SymExp Eval(const Var&, double value) const;
-	[[nodiscard]] SymExp Eval(const std::vector<Var>&, const std::vector<double>& values) const;
+	[[nodiscard]] SymExp At(const Var&, double value) const;
+	[[nodiscard]] SymExp At(const std::vector<Var>&, const std::vector<double>& values) const;
 	[[nodiscard]] SymExp Derive(const Var&) const;
-	[[nodiscard]] std::vector<SymExp> Derive(const std::vector<Var>&) const;
+	[[nodiscard]] SymExpVec Derive(const std::vector<Var>&) const;
+	[[nodiscard]] SymExpVec DeriveAt(const std::vector<Var>&, const std::vector<double>& values) const;
 	[[nodiscard]] SymExp Simplify() const;
 	[[nodiscard]] std::string to_string() const;
 
@@ -46,6 +48,20 @@ public:
 	[[nodiscard]] friend SymExp pow(SymExp, SymExp);
 	[[nodiscard]] friend SymExp exp(SymExp);
 	[[nodiscard]] friend SymExp log(SymExp);
+};
+
+class SymExpVec
+{
+	std::vector<SymExp> vec;
+public:
+	SymExpVec(std::vector<SymExp> vec) noexcept : vec(std::move(vec)) {}
+
+	[[nodiscard]] SymExpVec At(const Var&, double value) const;
+	[[nodiscard]] SymExpVec At(const std::vector<Var>&, const std::vector<double>& values) const;
+
+	[[nodiscard]] std::vector<double> value() const;
+
+	operator std::vector<SymExp>() { return vec; }
 };
 
 class Var final : public SymExp
